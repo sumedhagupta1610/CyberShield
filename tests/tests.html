@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberShield – Browser Test Runner</title>
+  <style>
+    body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #0b1120; color: #f1f5f9; padding: 24px; }
+    h1   { color: #3b82f6; margin-bottom: 4px; }
+    h2   { color: #06b6d4; margin: 20px 0 8px; font-size: 0.95rem; letter-spacing: 0.5px; }
+    .summary { font-size: 1.1rem; font-weight: 700; margin: 24px 0 12px; padding: 12px 16px; border-radius: 6px; }
+    .all-pass  { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .some-fail { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .test-item { padding: 5px 0; border-bottom: 1px solid #1e3a5f; display: flex; gap: 8px; font-size: 0.875rem; }
+    .pass { color: #22c55e; }
+    .fail { color: #ef4444; font-weight: 600; }
+    .group { background: #111827; border: 1px solid #1e3a5f; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px; }
+    p.note { color: #64748b; font-size: 0.8rem; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ CyberShield — Browser Test Runner</h1>
+  <p style="color:#94a3b8; margin-bottom:16px;">All tests run locally in your browser. No network requests are made.</p>
+  <div id="output"></div>
+  <p class="note">For the full Node.js test run, use: <code>node tests/tests.js</code></p>
+
+  <!-- Load the module under test -->
+  <script src="../app.js"></script>
+  <script>
+    'use strict';
+
+    /* ── Minimal harness ─────────────────────────── */
+    let passed = 0, failed = 0;
+    const groups = [];
+    let currentGroup = null;
+
+    function describe(name, fn) {
+      currentGroup = { name, tests: [] };
+      groups.push(currentGroup);
+      fn();
+    }
+
+    function assert(desc, cond) {
+      const item = { desc, pass: !!cond };
+      if (cond) passed++; else failed++;
+      if (currentGroup) currentGroup.tests.push(item);
+    }
+
+    /* ── Run all tests ───────────────────────────── */
+
+    describe('Password Strength – Empty & edge cases', function () {
+      const e = checkPasswordStrength('');
+      assert('Empty string returns score 0',             e.score === 0);
+      assert('Empty string returns empty label',         e.label === '');
+      assert('Empty string returns no suggestions',      e.suggestions.length === 0);
+      const s = checkPasswordStrength('a');
+      assert('Single char returns score 1',              s.score === 1);
+      assert('Single char label is "Very Weak"',         s.label === 'Very Weak');
+    });
+
+    describe('Password Strength – Weak passwords', function () {
+      const c = checkPasswordStrength('password');
+      assert('"password" overrides to score 1',          c.score === 1);
+      assert('"password" suggests common password',      c.suggestions.some(s => s.toLowerCase().includes('common')));
+      const sh = checkPasswordStrength('abc');
+      assert('3-char scores 1',                          sh.score === 1);
+      assert('3-char suggests minimum length',           sh.suggestions.some(s => s.includes('8 characters')));
+    });
+
+    describe('Password Strength – Medium passwords', function () {
+      const m = checkPasswordStrength('Hello123');
+      assert('"Hello123" scores >= 2',                   m.score >= 2);
+      assert('"Hello123" scores <= 4',                   m.score <= 4);
+      assert('"Hello123" has uppercase flag',            m.criteria.hasUppercase);
+      assert('"Hello123" has digit flag',                m.criteria.hasDigit);
+      assert('"Hello123" lacks special char',           !m.criteria.hasSpecial);
+    });
+
+    describe('Password Strength – Strong passwords', function () {
+      const st = checkPasswordStrength('Tr0ub4dor&3!xyz');
+      assert('"Tr0ub4dor&3!xyz" scores 5',               st.score === 5);
+      assert('"Tr0ub4dor&3!xyz" label is "Strong"',      st.label === 'Strong');
+      assert('"Tr0ub4dor&3!xyz" has no suggestions',     st.suggestions.length === 0);
+      const s2 = checkPasswordStrength('C0rr3ct-H0rs3!B4ttery');
+      assert('"C0rr3ct-H0rs3!B4ttery" scores 5',         s2.score === 5);
+    });
+
+    describe('Password Strength – Penalties', function () {
+      const r = checkPasswordStrength('aaaBBBBccc123!');
+      assert('Repeated chars reduce score below max',    r.score < 5);
+      const sq = checkPasswordStrength('abcdefGHI123!');
+      assert('Sequential chars reduce score below max',  sq.score < 5);
+    });
+
+    describe('URL Analyzer – Invalid inputs', function () {
+      const e = analyzeURL('');
+      assert('Empty URL returns parseError',             !!e.parseError);
+      const b = analyzeURL('   ');
+      assert('Whitespace-only returns parseError',       !!b.parseError);
+      const g = analyzeURL('not a url at all!!!');
+      assert('Garbage text yields riskLevel "high"',     g.riskLevel === 'high');
+      assert('Garbage text has a danger finding',        g.findings.some(f => f.level === 'danger'));
+    });
+
+    describe('URL Analyzer – Scheme detection', function () {
+      const h  = analyzeURL('http://example.com');
+      assert('http:// warns about plain HTTP',           h.findings.some(f => f.level === 'warn' && f.message.toLowerCase().includes('http')));
+      const hs = analyzeURL('https://example.com');
+      assert('https:// produces an ok finding',          hs.findings.some(f => f.level === 'ok'));
+      const js = analyzeURL('javascript:alert(1)');
+      assert('"javascript:" scheme = danger',            js.findings.some(f => f.level === 'danger' && f.message.toLowerCase().includes('javascript')));
+    });
+
+    describe('URL Analyzer – IP address host', function () {
+      const ip = analyzeURL('http://192.168.1.1/login');
+      assert('IP host produces warn finding',            ip.findings.some(f => f.level === 'warn' && f.message.includes('IP address')));
+      const d  = analyzeURL('https://mybank.com');
+      assert('Domain does NOT produce IP warning',      !d.findings.some(f => f.message.includes('IP address')));
+    });
+
+    describe('URL Analyzer – Embedded credentials', function () {
+      const c = analyzeURL('http://user:pass@example.com');
+      assert('Credentials produce danger finding',       c.findings.some(f => f.level === 'danger' && f.message.toLowerCase().includes('credential')));
+      const n = analyzeURL('https://example.com/path');
+      assert('No credentials — no credential danger',  !n.findings.some(f => f.message.toLowerCase().includes('credential')));
+    });
+
+    describe('URL Analyzer – Suspicious hostname keywords', function () {
+      const k = analyzeURL('https://secure-login.malicious.com');
+      assert('"secure-login" triggers keyword warning',  k.findings.some(f => f.level === 'warn' && f.message.includes('keyword')));
+      const cl = analyzeURL('https://news.bbc.co.uk');
+      assert('Clean hostname — no keyword warning',     !cl.findings.some(f => f.message.includes('keyword')));
+    });
+
+    describe('URL Analyzer – Brand-in-subdomain phishing', function () {
+      const p = analyzeURL('https://paypal.com.verify-now.net/login');
+      assert('"paypal" in subdomain = danger',           p.findings.some(f => f.level === 'danger' && f.message.toLowerCase().includes('paypal')));
+      const l = analyzeURL('https://www.paypal.com/login');
+      assert('paypal.com itself — no subdomain warning',!l.findings.some(f => f.level === 'danger' && f.message.toLowerCase().includes('paypal') && f.message.includes('subdomain')));
+    });
+
+    describe('URL Analyzer – Double scheme', function () {
+      const d = analyzeURL('https://evil.com/redirect?to=http://victim.com');
+      assert('Double scheme triggers danger',            d.findings.some(f => f.level === 'danger' && f.message.includes('Multiple')));
+    });
+
+    describe('URL Analyzer – URL shorteners', function () {
+      const sh = analyzeURL('https://bit.ly/abc123');
+      assert('bit.ly identified as shortener',           sh.findings.some(f => f.level === 'info' && f.message.includes('shortened')));
+    });
+
+    describe('URL Analyzer – Risk level', function () {
+      const hr = analyzeURL('http://user:pass@192.168.1.1/login');
+      assert('Credentials + IP = riskLevel "high"',      hr.riskLevel === 'high');
+      const lr = analyzeURL('https://wikipedia.org/wiki/Cybersecurity');
+      assert('Clean HTTPS URL = riskLevel "low"',        lr.riskLevel === 'low');
+    });
+
+    /* ── Render results ──────────────────────────── */
+    const out = document.getElementById('output');
+
+    const summary = document.createElement('div');
+    summary.className = 'summary ' + (failed === 0 ? 'all-pass' : 'some-fail');
+    summary.textContent = failed === 0
+      ? '✅ All ' + (passed + failed) + ' tests PASSED'
+      : '❌ ' + failed + ' test(s) FAILED — ' + passed + ' passed (total: ' + (passed + failed) + ')';
+    out.appendChild(summary);
+
+    groups.forEach(function (g) {
+      const div = document.createElement('div');
+      div.className = 'group';
+      const h2  = document.createElement('h2');
+      h2.textContent = g.name;
+      div.appendChild(h2);
+      g.tests.forEach(function (t) {
+        const row = document.createElement('div');
+        row.className = 'test-item';
+        const icon  = document.createElement('span');
+        icon.className = t.pass ? 'pass' : 'fail';
+        icon.textContent = t.pass ? '✅' : '❌';
+        const label = document.createElement('span');
+        label.textContent = t.desc;
+        row.appendChild(icon);
+        row.appendChild(label);
+        div.appendChild(row);
+      });
+      out.appendChild(div);
+    });
+  </script>
+</body>
+</html>

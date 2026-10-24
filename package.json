@@ -1,0 +1,14 @@
+{
+  "name": "cybershield",
+  "version": "1.0.0",
+  "description": "CyberShield – Cybersecurity Awareness Dashboard (College Project)",
+  "main": "app.js",
+  "scripts": {
+    "test":  "node tests/tests.js",
+    "start": "npx serve . --listen 3000"
+  },
+  "keywords": ["cybersecurity", "password", "url", "dashboard", "education"],
+  "author": "CyberShield Project",
+  "license": "MIT",
+  "devDependencies": {}
+}

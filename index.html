@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberShield – Cybersecurity Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ======================================================
+       HEADER / NAV
+  ====================================================== -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon" aria-hidden="true">🛡️</span>
+        <span class="logo-text">CyberShield</span>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="#password-checker" class="nav-link">Password Checker</a>
+        <a href="#url-analyzer"     class="nav-link">URL Analyzer</a>
+        <a href="#awareness"        class="nav-link">Awareness</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <!-- ====================================================
+         HERO BANNER
+    ==================================================== -->
+    <section class="hero" aria-label="Hero banner">
+      <h1>Your Digital Safety Dashboard</h1>
+      <p class="hero-subtitle">
+        Check password strength, analyse suspicious URLs, and learn cybersecurity best practices —
+        all processed <strong>locally in your browser</strong>. Nothing is ever sent to a server.
+      </p>
+    </section>
+
+    <!-- ====================================================
+         PASSWORD STRENGTH CHECKER
+    ==================================================== -->
+    <section id="password-checker" class="card" aria-labelledby="pwd-heading">
+      <h2 id="pwd-heading">
+        <span aria-hidden="true">🔑</span> Password Strength Checker
+      </h2>
+      <p class="section-desc">
+        Your password is <strong>never stored, logged, or transmitted</strong>.
+        All analysis happens instantly inside your browser.
+      </p>
+
+      <div class="form-group">
+        <label for="pwd-input" class="form-label">Enter a password to test</label>
+        <div class="input-row">
+          <input
+            type="password"
+            id="pwd-input"
+            class="form-input"
+            placeholder="Type a password…"
+            autocomplete="new-password"
+            aria-describedby="pwd-feedback"
+            maxlength="128"
+          />
+          <button
+            type="button"
+            id="toggle-pwd"
+            class="btn btn-ghost"
+            aria-label="Show or hide password"
+            title="Toggle visibility"
+          >👁️</button>
+        </div>
+      </div>
+
+      <!-- Strength meter -->
+      <div class="meter-container" aria-hidden="true">
+        <div class="meter-bar" id="meter-bar"></div>
+      </div>
+      <div id="strength-label" class="strength-label" role="status" aria-live="polite"></div>
+
+      <!-- Detailed feedback -->
+      <div id="pwd-feedback" class="feedback-box" aria-live="polite"></div>
+
+      <button type="button" id="clear-pwd" class="btn btn-secondary mt-1">Clear</button>
+    </section>
+
+    <!-- ====================================================
+         SUSPICIOUS URL ANALYZER
+    ==================================================== -->
+    <section id="url-analyzer" class="card" aria-labelledby="url-heading">
+      <h2 id="url-heading">
+        <span aria-hidden="true">🔍</span> Suspicious URL Analyzer
+      </h2>
+      <p class="section-desc">
+        Paste or type a URL below. The text is checked <strong>locally for warning signs only</strong>.
+        The URL is <strong>never visited, fetched, or opened</strong>. Heuristic results cannot
+        guarantee a URL is safe or malicious — always verify with trusted security services.
+      </p>
+
+      <div class="form-group">
+        <label for="url-input" class="form-label">Enter a URL to inspect</label>
+        <input
+          type="text"
+          id="url-input"
+          class="form-input"
+          placeholder="e.g. http://192.168.1.1/login or https://example.com"
+          autocomplete="off"
+          aria-describedby="url-result"
+          maxlength="2048"
+        />
+      </div>
+
+      <button type="button" id="analyze-btn" class="btn btn-primary">Analyze URL</button>
+      <button type="button" id="clear-url"   class="btn btn-secondary">Clear</button>
+
+      <div id="url-result" class="feedback-box" aria-live="polite"></div>
+    </section>
+
+    <!-- ====================================================
+         CYBERSECURITY AWARENESS
+    ==================================================== -->
+    <section id="awareness" class="card" aria-labelledby="awareness-heading">
+      <h2 id="awareness-heading">
+        <span aria-hidden="true">📚</span> Cybersecurity Awareness
+      </h2>
+      <p class="section-desc">
+        Practical guidance to keep yourself safe online.
+      </p>
+
+      <div class="awareness-grid">
+
+        <!-- Phishing -->
+        <article class="awareness-card" aria-labelledby="phishing-title">
+          <h3 id="phishing-title">
+            <span aria-hidden="true">🎣</span> Phishing Attacks
+          </h3>
+          <p>
+            Phishing tricks you into revealing credentials or downloading malware by
+            impersonating trusted senders. Warning signs include:
+          </p>
+          <ul>
+            <li>Urgent language — "Act now or your account will be closed!"</li>
+            <li>Sender address doesn't match the displayed name</li>
+            <li>Hover shows a link destination different from the text</li>
+            <li>Generic greeting ("Dear Customer") instead of your name</li>
+            <li>Unexpected attachments (PDFs, Office files, ZIPs)</li>
+          </ul>
+          <p><strong>What to do:</strong> Never click links in unexpected emails.
+          Go directly to the official website instead.</p>
+        </article>
+
+        <!-- Strong passwords -->
+        <article class="awareness-card" aria-labelledby="pwd-advice-title">
+          <h3 id="pwd-advice-title">
+            <span aria-hidden="true">🔐</span> Strong, Unique Passwords
+          </h3>
+          <p>A strong password:</p>
+          <ul>
+            <li>Is at least 12 characters long</li>
+            <li>Mixes uppercase, lowercase, digits, and symbols</li>
+            <li>Contains no dictionary words or personal info</li>
+            <li>Is <strong>unique per account</strong> — reuse enables credential stuffing</li>
+          </ul>
+          <p>
+            Use a reputable password manager (Bitwarden, KeePassXC) so you only
+            need to remember one master passphrase.
+          </p>
+        </article>
+
+        <!-- MFA -->
+        <article class="awareness-card" aria-labelledby="mfa-title">
+          <h3 id="mfa-title">
+            <span aria-hidden="true">📱</span> Multi-Factor Authentication (MFA)
+          </h3>
+          <p>
+            MFA requires a second proof of identity beyond your password.
+            Even if your password is stolen, the attacker still cannot log in.
+          </p>
+          <ul>
+            <li><strong>TOTP apps</strong> (Google Authenticator, Authy) — preferred</li>
+            <li><strong>Hardware keys</strong> (YubiKey) — strongest option</li>
+            <li><strong>SMS codes</strong> — convenient but susceptible to SIM-swap</li>
+          </ul>
+          <p>Enable MFA on email, banking, and social-media accounts first.</p>
+        </article>
+
+        <!-- Safe browsing -->
+        <article class="awareness-card" aria-labelledby="browsing-title">
+          <h3 id="browsing-title">
+            <span aria-hidden="true">🌐</span> Safe Browsing Habits
+          </h3>
+          <ul>
+            <li>Look for HTTPS and a padlock before entering sensitive information</li>
+            <li>Keep your browser and OS up to date — patches fix known vulnerabilities</li>
+            <li>Avoid public Wi-Fi for sensitive tasks; use a VPN if needed</li>
+            <li>Install only trusted browser extensions; review permissions</li>
+            <li>Clear cookies and cache periodically</li>
+            <li>Use a privacy-focused DNS (Cloudflare 1.1.1.1 or Google 8.8.8.8)</li>
+          </ul>
+        </article>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <p>
+      CyberShield &copy; 2025 — Educational project. Results are heuristic and
+      <strong>do not guarantee</strong> that any password or URL is fully safe.
+      Never enter real passwords into any online tool.
+    </p>
+  </footer>
+
+  <!-- All logic is in app.js — no external scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
